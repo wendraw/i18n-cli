@@ -34,6 +34,7 @@ class Collector {
     const formattedText = removeLineBreaksInTag(originalText)
     const translationKey = customizeKeyFn(escapeQuotes(formattedText), this.currentFilePath) // key中不能包含回车
     log.verbose('提取中文：', formattedText)
+    log.verbose('转换后中文 key：', translationKey)
     this.keyMap[translationKey] = formattedText.replace('|', "{'|'}") // '|' 管道符在vue-i18n表示复数形式,需要特殊处理。见https://vue-i18n.intlify.dev/guide/essentials/pluralization.html
     this.countOfAdditions++
     this.currentFileKeyMap[translationKey] = formattedText

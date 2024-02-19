@@ -7,22 +7,26 @@
     <p :title="'标题'">
       测试项目
     </p>
+    <p>测试 ts 内容 {{ str }}</p>
     <button type="button" @click="toggleLocale">点击切换语言</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import i18n from '../utils/i18n'
+import i18n from '../../locales/i18n'
+import { text } from '../utils/test'
 
 defineProps<{ msg: string }>()
 
 const count = ref(0)
 
+const str = text(count)
+
 const toggleLocale = () => {
   const locale: string = localStorage.getItem('locale') || ''
-  i18n.locale = locale === 'zh-CN'? 'en-US': 'zh-CN'
-  localStorage.setItem('locale', i18n.locale)
+  i18n.global.locale.value = locale === 'zh-CN' ? 'en-US' : 'zh-CN'
+  localStorage.setItem('locale', i18n.global.locale.value)
   location.reload()
 }
 </script>

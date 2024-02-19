@@ -41,7 +41,7 @@ function parseJsSyntax(source: string, rule: Rule): string {
       caller: '',
       importDeclaration: '',
     },
-    parse: initParse([[presetTypescript, { isTSX: true, allExtensions: true }]]),
+    parse: initParse([[presetTypescript, { isTSX: false, allExtensions: true }]]),
   })
 
   let stylizedCode = prettier.format(code, {
@@ -315,7 +315,7 @@ function findExportDefaultDeclaration(source: string, parser: (code: string) => 
 
 function handleScript(source: string, rule: Rule): string {
   // TODO: 这里babel解析可以优化，不然vue文件的script会重复解析两次浪费性能
-  const parser = initParse([[presetTypescript, { isTSX: true, allExtensions: true }]])
+  const parser = initParse([[presetTypescript, { isTSX: false, allExtensions: true }]])
   const startIndex = findExportDefaultDeclaration(source, parser)
   const transformOptions = {
     rule: {
@@ -323,7 +323,7 @@ function handleScript(source: string, rule: Rule): string {
       functionName: rule.functionNameInScript,
     },
     isJsInVue: true, // 标记处理vue里的js
-    parse: initParse([[presetTypescript, { isTSX: true, allExtensions: true }]]),
+    parse: initParse([[presetTypescript, { isTSX: false, allExtensions: true }]]),
   }
 
   if (startIndex !== -1) {

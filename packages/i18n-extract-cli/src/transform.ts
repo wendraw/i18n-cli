@@ -23,6 +23,10 @@ function transform(
         parse: initParse(),
       })
     case 'ts':
+      return transformJs(code, {
+        rule: rules[ext],
+        parse: initParse([[presetTypescript, { isTSX: false, allExtensions: true }]]),
+      })
     case 'tsx':
       return transformJs(code, {
         rule: rules[ext],
