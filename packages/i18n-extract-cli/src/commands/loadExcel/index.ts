@@ -18,8 +18,10 @@ function getLangList(locales: string[], rows: string[][]): StringObject[] {
     langList.push({})
     rows.forEach((row) => {
       const key = row[0]
-      const value = row[i + 1]
-      langList[i][key] = value
+      if (key) {
+        const value = row[i + 1]
+        langList[i][key] = value
+      }
     })
     // 对象的key可能是xx.xx这种形式，需要转成{xx:{xx:1}}
     result[i] = spreadObject(langList[i])
