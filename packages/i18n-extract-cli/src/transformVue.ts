@@ -13,7 +13,7 @@ import ejs from 'ejs'
 import type { Rule, TagOrder, transformOptions } from '../types'
 import { includeChinese } from './utils/includeChinese'
 import log from './utils/log'
-import transformJs from './transformJs'
+import transformJs, { TemplateParams } from './transformJs'
 import { initParse } from './parse'
 import { escapeQuotes } from './utils/escapeQuotes'
 import Collector from './collector'
@@ -26,7 +26,7 @@ const presetTypescript = require('@babel/preset-typescript')
 type Handler = (source: string, rule: Rule) => string
 const COMMENT_TYPE = '!'
 
-function parseJsSyntax(source: string, rule: Rule): string {
+function parseJsSyntax(source: string, rule: Rule, isJsInVue?: boolean): string {
   // html属性有可能是{xx:xx}这种对象形式，直接解析会报错，需要特殊处理。
   // 先处理成temp = {xx:xx} 让babel解析，解析完再还原成{xx:xx}
   let isObjectStruct = false
@@ -42,6 +42,7 @@ function parseJsSyntax(source: string, rule: Rule): string {
       importDeclaration: '',
     },
     parse: initParse([[presetTypescript, { isTSX: false, allExtensions: true }]]),
+    isJsInVue,
   })
 
   let stylizedCode = prettier.format(code, {
@@ -73,36 +74,27 @@ function parseTextNode(
   getReplaceValue: (translationKey: string) => string,
   customizeKey: (key: string) => string
 ) {
+  const hasChinese = includeChinese(text)
+  if (!hasChinese) {
+    return text
+  }
   let str = ''
   const tokens = mustache.parse(text)
+  // 将文本 测试 {{ `中文${str}b` }} 合并中文变量 => `测试  ${`中文${str}b`}  合并中文变量`
   for (const token of tokens) {
     const type = token[0]
     const value = token[1]
-
-    if (includeChinese(value)) {
-      if (type === 'text') {
-        const translationKey = Collector.add(value, customizeKey)
-        str += `{{${getReplaceValue(translationKey)}}}`
-      } else if (type === 'name') {
-        const source = parseJsSyntax(value, rule)
-        str += `{{${source}}}`
-      } else if (type === COMMENT_TYPE) {
-        // 形如{{!xxxx}}这种形式，在mustache里属于注释语法
-        const source = parseJsSyntax(`!${value}`, rule)
-        str += `{{${source}}}`
-      }
-    } else {
-      if (type === 'text') {
-        str += value
-      } else if (type === 'name') {
-        str += `{{${value}}}`
-      } else if (type === COMMENT_TYPE) {
-        // 形如{{!xxxx}}这种形式，在mustache里属于注释语法
-        str += `{{!${value}}}`
-      }
+    if (type === 'text') {
+      str += value
+    } else if (type === 'name') {
+      str += `\${${value}}`
+    } else if (type === COMMENT_TYPE) {
+      // 形如{{!xxxx}}这种形式，在mustache里属于注释语法
+      str += `\${!${value}}`
     }
   }
-  return str
+  const res = parseJsSyntax(`\`${str}\``, rule, true)
+  return `{{${res}}}`
 }
 
 function handleTemplate(code: string, rule: Rule): string {

@@ -34,7 +34,7 @@ import { isObject } from './utils/assertType'
 import { IGNORE_REMARK } from './utils/constants'
 import StateManager from './utils/stateManager'
 
-type TemplateParams = {
+export type TemplateParams = {
   [k: string]:
     | string
     | {
@@ -250,7 +250,8 @@ function transformJs(code: string, options: transformOptions): GeneratorResult {
                 value += `{${node.name}}`
                 params[node.name] = node.name
               } else if (node.type === 'TemplateElement') {
-                value += node.value.raw.replace(/[\r\n]/g, '') // 用raw防止字符串中出现 /n
+                // value += node.value.raw.replace(/[\r\n]/g, '') // 用raw防止字符串中出现 /n
+                value += node.value.raw
               } else if (node.type === 'MemberExpression') {
                 const key = `slot${slotIndex++}`
                 value += `{${key}}`
